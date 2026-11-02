@@ -254,5 +254,3 @@ tests/            tests d'intégration PostgreSQL et API
 Ce dépôt est publié à des fins de portfolio et de démonstration. Sa publication ne constitue pas une autorisation générale de réutiliser le code original. Toute reproduction, modification, adaptation, redistribution, réutilisation ou exploitation commerciale nécessite l’autorisation écrite préalable du titulaire des droits. Toute utilisation non autorisée est interdite, sous réserve des droits accordés par GitHub aux utilisateurs de ses dépôts publics et des exceptions prévues par la loi applicable. Consultez le fichier `LICENSE`.
 
 Les logiciels, polices, images, vidéos, logos, icônes et autres ressources de tiers restent soumis à leurs droits et licences respectifs. Leur présence dans le dépôt ne constitue pas une revendication de propriété.
-#   B S R M _ B o o k i n g  
- 

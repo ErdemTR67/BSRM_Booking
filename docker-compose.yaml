@@ -1,0 +1,84 @@
+services:
+  api:
+    build:
+      context: .
+    container_name: bosphoreum-booking-api
+    restart: unless-stopped
+    environment:
+      APP_NAME: ${APP_NAME:-Bosphoreum Booking API}
+      APP_ENVIRONMENT: ${APP_ENVIRONMENT:-development}
+      APP_DEBUG: ${APP_DEBUG:-false}
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_APP_USER:-${POSTGRES_USER}}:${POSTGRES_APP_PASSWORD:-${POSTGRES_PASSWORD}}@postgres:5432/${POSTGRES_DB}
+      DATABASE_MIGRATION_URL: postgresql+psycopg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      DATABASE_APPLICATION_ROLE: ${DATABASE_APPLICATION_ROLE:-bsrm_booking_app}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY}
+      JWT_ALGORITHM: ${JWT_ALGORITHM:-HS256}
+      ACCESS_TOKEN_EXPIRE_MINUTES: ${ACCESS_TOKEN_EXPIRE_MINUTES:-30}
+      REFRESH_TOKEN_EXPIRE_DAYS: ${REFRESH_TOKEN_EXPIRE_DAYS:-30}
+      CORS_ORIGINS: ${CORS_ORIGINS:-[]}
+      ALLOWED_HOSTS: ${ALLOWED_HOSTS:-["127.0.0.1","localhost"]}
+      EXPOSE_API_DOCS: ${EXPOSE_API_DOCS:-true}
+      INVITATION_EXPIRE_HOURS: ${INVITATION_EXPIRE_HOURS:-48}
+      INVITATION_FRONTEND_URL: ${INVITATION_FRONTEND_URL:-http://localhost:5173/accept-invitation}
+      EMAIL_DELIVERY_MODE: ${EMAIL_DELIVERY_MODE:-console}
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USERNAME: ${SMTP_USERNAME:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      SMTP_FROM_EMAIL: ${SMTP_FROM_EMAIL:-}
+      SMTP_USE_TLS: ${SMTP_USE_TLS:-true}
+      PUBLIC_BOOKING_CHALLENGE_MODE: ${PUBLIC_BOOKING_CHALLENGE_MODE:-disabled}
+      TURNSTILE_SECRET_KEY: ${TURNSTILE_SECRET_KEY:-}
+      TURNSTILE_EXPECTED_ACTION: ${TURNSTILE_EXPECTED_ACTION:-booking}
+      PUBLIC_BOOKING_CATALOGUE_RATE_LIMIT: ${PUBLIC_BOOKING_CATALOGUE_RATE_LIMIT:-120}
+      PUBLIC_BOOKING_AVAILABILITY_RATE_LIMIT: ${PUBLIC_BOOKING_AVAILABILITY_RATE_LIMIT:-60}
+      PUBLIC_BOOKING_CREATE_RATE_LIMIT: ${PUBLIC_BOOKING_CREATE_RATE_LIMIT:-5}
+      PUBLIC_BOOKING_MAX_BODY_BYTES: ${PUBLIC_BOOKING_MAX_BODY_BYTES:-16384}
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  postgres:
+    image: postgres:17
+    container_name: bosphoreum-booking-postgres
+    restart: unless-stopped
+
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_APP_USER: ${POSTGRES_APP_USER:-${POSTGRES_USER}}
+      POSTGRES_APP_PASSWORD: ${POSTGRES_APP_PASSWORD:-${POSTGRES_PASSWORD}}
+
+    ports:
+      - "5432:5432"
+
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./docker/postgres/init-app-role.sh:/docker-entrypoint-initdb.d/10-app-role.sh:ro
+
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:
